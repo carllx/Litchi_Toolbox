@@ -41,11 +41,27 @@ const Spring = (Center, Altitude, numOfShots, radius )=>{
 
 // 计算两点连线的倾斜角
 // 参考 https://blog.pfan123.com/2016/10/24/%E6%96%9C%E7%8E%87%E8%AE%A1%E7%AE%97/
-const tanAngle = (ptsA,ptsB)=>{
-    const x = Math.atan2( ptsB[1]- ptsA[1]  ,ptsB[0]-ptsA[0]);  //得到弧度值
-    const Angle = radians_to_degrees(x)  //获取角度值
-    return Angle
+const tanAngle = (pA,pB,Radius)=>{
+    const angleD = Math.atan( Math.abs(pB[1] - pA[1])  /Math.abs(pB[0] - pA[0]));  //得到弧度值
+    const AB =  Math.sqrt(  Math.pow(pA[0]-pB[0],2) +  Math.pow(pA[1]-pB[1],2)  )
+    const angleC = Math.acos( Radius  /AB);  // 
+    console.log(`angleD: ${radians_to_degrees(angleD)}`)
+    console.log(`angle2: ${radians_to_degrees(angleC)+radians_to_degrees(angleD)}`)
+    const angleE = 180 - radians_to_degrees(angleC) - radians_to_degrees(angleD)
+    // const Angle = radians_to_degrees(angleE)  //获取角度值
+    return angleE
 }
+
+// const tanAngle = (pA,pB,Radius)=>{
+//     const angleD = Math.atan( (pB[1] - pA[1])  /(pB[0] - pA[0]));  //得到弧度值
+//     const AB =  Math.sqrt(  Math.pow(pA[0]-pB[0],2) +  Math.pow(pA[1]-pB[1],2)  )
+//     const angleC = Math.acos( Radius  /AB);  // 
+//     console.log(`angleD: ${radians_to_degrees(angleD)}`)
+//     console.log(`angle2: ${radians_to_degrees(angleC)+radians_to_degrees(angleD)}`)
+//     const angleE = 180 - radians_to_degrees(angleC) - radians_to_degrees(angleD)
+//     // const Angle = radians_to_degrees(angleE)  //获取角度值
+//     return angleE
+// }
 
 
 const  radians_to_degrees = (radians)=>{
@@ -59,5 +75,6 @@ const  degrees_to_radians = (degrees)=>{
 
 const pA = [222.5 ,279.5 ]
 const pB = [89,442]
-tanAngle(pA,pB)
-debugger
+const Radius = 100
+console.log( tanAngle(pA,pB,Radius))
+// debugger
