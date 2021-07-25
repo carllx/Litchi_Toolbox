@@ -1,12 +1,14 @@
 const inputCSVFilePath = 'sample/spring/input.csv'
 const outputCSVFilePath = 'sample/spring/out.csv'
-const csv = require('csvtojson')
-const CheapRuler = require('cheap-ruler')
+// const csv = import('csvtojson')
+// import {toxy,tolatlng} from '../utitls/transformCoordinates'
+import {toxy,tolatlng} from '../utitls/transformCoordinates.js'
+import {parseCsv,parseJsonToCSV} from   '../utitls/csvParse.js'
 
 
-// run()
 
 
+    
 
 // 计算两点连线的倾斜角
 // 参考 https://blog.pfan123.com/2016/10/24/%E6%96%9C%E7%8E%87%E8%AE%A1%E7%AE%97/
@@ -60,7 +62,8 @@ const  degrees_to_radians = (degrees)=>{
  * (y)num_of_circle_pts每圈多少个pts 构成?
  */
  const Spring = ( Center, Altitudes,radius, num_of_Shots,cut_in_angle  )=>{
-    const num_of_circle_pts = num_of_circles = Math.round(Math.sqrt(num_of_Shots))
+     const num_of_circles =  Math.round(Math.sqrt(num_of_Shots))
+    const num_of_circle_pts = num_of_circles 
     const actual_shots = num_of_circle_pts*num_of_circles // 实际拍摄次数
     console.log(`实际拍摄${actual_shots}次\n ${num_of_circles} (circles) x ${num_of_circle_pts} (p/t/circles))`)
     const height = Math.abs(Altitudes[0] - Altitudes[1])
@@ -82,24 +85,46 @@ const  degrees_to_radians = (degrees)=>{
 
 const createSpring = async(Radius,Shots)=>{
     // read the source to JSON
-    const wPOIs = await csv().fromFile(inputCSVFilePath);
-    const radius_in_km = Radius / 1000
-
+    // const wPOIs = await csv().fromFile(inputCSVFilePath);
+    const csvdata = await parseCsv(inputCSVFilePath)
+    let wPOIs = csvdata.data
     // 切入点
     const wPOI_last = wPOIs[wPOIs.length -1]
-    const poiA = [wPOI_last['latitude'],wPOI_last['longitude']]
-    const poi00 = [wPOI_last['poi_latitude'],wPOI_last['poi_longitude']]
+    const poiA = toxy([wPOI_last['longitude'],wPOI_last['latitude']])
+    const poi00 = toxy([wPOI_last['poi_longitude'],wPOI_last['poi_latitude']])
     const cut_in_ang = angleCutIn (poiA,poi00,Radius) // radiant
     const altitudes = [wPOI_last['altitude(m)'] ,wPOI_last['poi_altitude(m)']]
     
     // 计算 spring , (Center, Altitudes,radius, num_of_Shots,cut_in_angle)
+    const springs = Spring(poi00,altitudes,Radius,Shots,cut_in_ang)
 
-    Spring(poi00,altitudes,Radius,Shots,cut_in_ang)
-    // alt.toFixed(1);// 单位(m)保留小数点1位
-    // lat,lug.toFixed(13) es:11.2534470866087
+    // to csv 
+    const o_spring = springs.map(s=>{
+        const latlng = tolatlng([s[0],s[1]])
+        return(
+            {
+                "latitude":latlng[1],
+                "longitude":latlng[0],
+                "altitude(m)":s[2].toFixed(2),
+                "heading(deg)":wPOI_last["heading(deg)"],
+                "curvesize(m)":wPOI_last["curvesize(m)"],
+                "rotationdir":wPOI_last["rotationdir"],
+                "gimbalmode":wPOI_last["gimbalmode"],
+                "gimbalpitchangle":wPOI_last["gimbalpitchangle"],
+                "altitudemode":wPOI_last["altitudemode"],
+                "speed(m/s)":wPOI_last["speed(m/s)"],
+                "poi_latitude":wPOI_last['poi_latitude'],
+                "poi_longitude":wPOI_last['poi_longitude'],
+                "poi_altitude(m)":wPOI_last["poi_altitude(m)"],
+                "poi_altitudemode":wPOI_last["poi_altitudemode"],
+                "photo_timeinterval":wPOI_last["photo_timeinterval"],
+                "photo_distinterval":wPOI_last["photo_distinterval"]
+            }
+        )
+    })
 
-    var ruler = new CheapRuler(43.7, 'meters'); //calculations around latitude 35
-    debugger
+    wPOIs = wPOIs.concat(o_spring)
+    parseJsonToCSV(wPOIs,outputCSVFilePath);
     
     
 }

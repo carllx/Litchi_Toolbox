@@ -16,10 +16,11 @@
     "url": "https://github.com/carllx/Litchi_Toolbox/issues"
   },
   "homepage": "https://github.com/carllx/Litchi_Toolbox#readme",
-  "dependencies": {
-    "csvtojson": "^2.0.10"
-  },
+  "type": "module",
+  "dependencies": {},
   "devDependencies": {
-    "cheap-ruler": "^3.0.1"
+    "csvtojson": "^2.0.10",
+    "papaparse": "^5.3.1",
+    "proj4": "^2.7.5"
   }
 }
