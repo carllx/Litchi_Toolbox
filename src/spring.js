@@ -1,5 +1,5 @@
-const inputCSVFilePath = 'sample/spring/input.csv'
-const outputCSVFilePath = 'sample/spring/out.csv'
+const inputCSVFilePath = 'sample/spring/6th spring Re Vittorio Emanuele II02.csv'
+const outputCSVFilePath = 'sample/spring/out-Re Vittorio Emanuele II.csv'
 // const csv = import('csvtojson')
 // import {toxy,tolatlng} from '../utitls/transformCoordinates'
 import {toxy,tolatlng} from '../utitls/transformCoordinates.js'
@@ -77,7 +77,7 @@ const  degrees_to_radians = (degrees)=>{
         ang += rotPerShot
         const x = Center[0] + radius * Math.cos(ang);
         const y = Center[1] + radius * Math.sin(ang);
-        RUSULT.push([x,y,alt])
+        RUSULT.push([x,y,Altitudes[0] + alt]) // 最低高度叠加
         
     }
     return RUSULT
@@ -86,6 +86,9 @@ const  degrees_to_radians = (degrees)=>{
 const createSpring = async(Radius,Shots)=>{
     // read the source to JSON
     // const wPOIs = await csv().fromFile(inputCSVFilePath);
+    const alt_btm = 5
+    const alt_top = 13
+    const alt_mid = 8
     const csvdata = await parseCsv(inputCSVFilePath)
     let wPOIs = csvdata.data
     // 切入点
@@ -93,7 +96,8 @@ const createSpring = async(Radius,Shots)=>{
     const poiA = toxy([wPOI_last['longitude'],wPOI_last['latitude']])
     const poi00 = toxy([wPOI_last['poi_longitude'],wPOI_last['poi_latitude']])
     const cut_in_ang = angleCutIn (poiA,poi00,Radius) // radiant
-    const altitudes = [wPOI_last['altitude(m)'] ,wPOI_last['poi_altitude(m)']]
+    // const altitudes = [wPOI_last['altitude(m)'] ,wPOI_last['poi_altitude(m)']]
+    const altitudes = [alt_btm ,alt_top]
     
     // 计算 spring , (Center, Altitudes,radius, num_of_Shots,cut_in_angle)
     const springs = Spring(poi00,altitudes,Radius,Shots,cut_in_ang)
@@ -103,22 +107,23 @@ const createSpring = async(Radius,Shots)=>{
         const latlng = tolatlng([s[0],s[1]])
         return(
             {
+                ...wPOI_last,
                 "latitude":latlng[1],
                 "longitude":latlng[0],
-                "altitude(m)":s[2].toFixed(2),
-                "heading(deg)":wPOI_last["heading(deg)"],
-                "curvesize(m)":wPOI_last["curvesize(m)"],
-                "rotationdir":wPOI_last["rotationdir"],
-                "gimbalmode":wPOI_last["gimbalmode"],
-                "gimbalpitchangle":wPOI_last["gimbalpitchangle"],
-                "altitudemode":wPOI_last["altitudemode"],
-                "speed(m/s)":wPOI_last["speed(m/s)"],
-                "poi_latitude":wPOI_last['poi_latitude'],
-                "poi_longitude":wPOI_last['poi_longitude'],
-                "poi_altitude(m)":wPOI_last["poi_altitude(m)"],
-                "poi_altitudemode":wPOI_last["poi_altitudemode"],
-                "photo_timeinterval":wPOI_last["photo_timeinterval"],
-                "photo_distinterval":wPOI_last["photo_distinterval"]
+                "altitude(m)":s[2].toFixed(1),
+                // "heading(deg)":wPOI_last["heading(deg)"],
+                // "curvesize(m)":wPOI_last["curvesize(m)"],
+                // "rotationdir":wPOI_last["rotationdir"],//0 for clockwise, 1 for counterclockwise
+                "gimbalmode":1,//0 for disabled, 1 for focus poi, 2 for interpolate
+                // "gimbalpitchangle":wPOI_last["gimbalpitchangle"],
+                "altitudemode":1,//0 for AboveTakeOff or 1 for AboveGround
+                // "speed(m/s)":wPOI_last["speed(m/s)"],
+                // "poi_latitude":wPOI_last['poi_latitude'],
+                // "poi_longitude":wPOI_last['poi_longitude'],
+                "poi_altitude(m)":alt_mid,
+                "poi_altitudemode":1,//0 for AboveTakeOff or 1 for AboveGround
+                // "photo_timeinterval":wPOI_last["photo_timeinterval"],
+                // "photo_distinterval":wPOI_last["photo_distinterval"]
             }
         )
     })
@@ -138,4 +143,4 @@ const createSpring = async(Radius,Shots)=>{
 
 
 //
-createSpring(20,150)//Radius,Shots
+createSpring(15,81)//Radius,Shots
